@@ -44,6 +44,10 @@ impl Cartridge {
         o
     }
 
+}
+
+impl Cartridge {
+
     // Get and set bank location
     pub fn get_bank(&self) -> u8 {
         self.rom_bank
@@ -62,6 +66,10 @@ impl Cartridge {
         self.rom_banks[self.rom_bank as usize][idx as usize]
     }
 
+}
+
+impl Cartridge {    
+
     // Cartridge Ram
     pub fn read_ram_byte(&self, idx: u16) -> u8 {
         self.ext_ram[idx as usize]
@@ -71,6 +79,10 @@ impl Cartridge {
         self.ext_ram[idx as usize] = val;
     }
 
+}
+
+impl Cartridge { 
+
     // Cartridge Information
     pub fn get_name(&self) -> String {
         String::from(
@@ -78,4 +90,5 @@ impl Cartridge {
                 .expect("Invalid Cartridge Name! [is this a gb rom?]")
         )
     }
+    
 }

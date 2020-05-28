@@ -21,6 +21,10 @@ impl GPU {
         }
     }
 
+}
+
+impl GPU {
+
     // Get and set bank location
     pub fn get_bank(&self) -> u8 {
         self.vram_bank
@@ -38,5 +42,4 @@ impl GPU {
     pub fn write_vram_byte(&mut self, idx: u16, val: u8) {
         self.vram_banks[self.vram_bank as usize][idx as usize] = val;
     }
-
 }

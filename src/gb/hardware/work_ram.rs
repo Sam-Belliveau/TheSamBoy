@@ -23,6 +23,9 @@ impl WorkRAM {
         }
     }
 
+}
+
+impl WorkRAM {
     // Get and set bank location
     pub fn get_bank(&self) -> u8 {
         self.ram_bank

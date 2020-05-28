@@ -1,6 +1,6 @@
-use crate::gb::cartridge::Cartridge;
-use crate::gb::gpu::GPU;
-use crate::gb::work_ram::WorkRAM;
+use crate::gb::hardware::cartridge::Cartridge;
+use crate::gb::hardware::gpu::GPU;
+use crate::gb::hardware::work_ram::WorkRAM;
 
 use std::fs::File;
 
@@ -29,6 +29,9 @@ impl MemoryBus {
         }
     }
 
+}
+
+impl MemoryBus {
     // read byte from memory map
     pub fn read_byte(&self, idx: u16) -> u8 {
         match idx {
@@ -112,6 +115,10 @@ impl MemoryBus {
         }
     }
 
+}
+
+impl MemoryBus {
+
     pub fn read_word(&self, idx: u16) -> u16 {
         let h = self.read_byte(idx + 1);
         let l = self.read_byte(idx + 0);
@@ -126,5 +133,5 @@ impl MemoryBus {
         self.write_byte(idx + 1, h);
         self.write_byte(idx + 0, l);
     }
-
+    
 }
