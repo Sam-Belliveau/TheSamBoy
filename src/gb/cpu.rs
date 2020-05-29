@@ -28,37 +28,25 @@ impl CPU {
         let cycles = op.exec(self);
 
         if cycles == op::UNKNOWN_RETURN_CODE {
-            self.reg.pc = self.reg.pc.wrapping_add(1);
             println!("Unimplemented OP Code! {}", op);
         } else {
             self.cycles += cycles;
+            println!("Ran OP Code! {}", op);
         }
 
     }
 }
 
 impl CPU {
-    
-    pub fn stack_push_byte(&mut self, val: u8) {
-        self.reg.sp = self.reg.sp.wrapping_sub(1);
-        self.bus.write_byte(self.reg.sp, val);
-    }
 
-    pub fn stack_push_word(&mut self, val: u16) {
+    pub fn stack_push(&mut self, val: u16) {
         self.reg.sp = self.reg.sp.wrapping_sub(2);
-        self.bus.write_word(self.reg.sp, val);
+        self.bus.write_word(self.reg.sp.wrapping_add(1), val);
     }
 
-    pub fn stack_pop_byte(&mut self) -> u8 {
-        let o = self.bus.read_byte(self.reg.sp);
-        self.reg.sp = self.reg.sp.wrapping_add(1);
-        o
-    }
-
-    pub fn stack_pop_word(&mut self) -> u16 {
-        let o = self.bus.read_word(self.reg.sp);
+    pub fn stack_pop(&mut self) -> u16 {
         self.reg.sp = self.reg.sp.wrapping_add(2);
-        o
+        self.bus.read_word(self.reg.sp.wrapping_sub(1))
     }
 
 }

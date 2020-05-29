@@ -22,7 +22,7 @@ impl Registers {
     pub fn init() -> Self {
         Self {
             pc: 0x0000,
-            sp: 0xffff,
+            sp: 0xfffe,
 
             a: 0x00, f: 0x00,
 
@@ -36,11 +36,11 @@ impl Registers {
 }
 
 impl Registers {
-    pub fn get_flag_bit(&self, bit: usize) -> bool {
+    fn get_flag_bit(&self, bit: usize) -> bool {
         (self.f & ((1 << bit) as u8)) != 0
     }
 
-    pub fn set_flag_bit(&mut self, bit: usize, val: bool) {
+    fn set_flag_bit(&mut self, bit: usize, val: bool) {
         if val {
             self.f |= (1 << bit) as u8;
         } else {
