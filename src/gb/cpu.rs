@@ -38,6 +38,32 @@ impl CPU {
 }
 
 impl CPU {
+    
+    pub fn stack_push_byte(&mut self, val: u8) {
+        self.reg.sp = self.reg.sp.wrapping_sub(1);
+        self.bus.write_byte(self.reg.sp, val);
+    }
+
+    pub fn stack_push_word(&mut self, val: u16) {
+        self.reg.sp = self.reg.sp.wrapping_sub(2);
+        self.bus.write_word(self.reg.sp, val);
+    }
+
+    pub fn stack_pop_byte(&mut self) -> u8 {
+        let o = self.bus.read_byte(self.reg.sp);
+        self.reg.sp = self.reg.sp.wrapping_add(1);
+        o
+    }
+
+    pub fn stack_pop_word(&mut self) -> u16 {
+        let o = self.bus.read_word(self.reg.sp);
+        self.reg.sp = self.reg.sp.wrapping_add(2);
+        o
+    }
+
+}
+
+impl CPU {
     pub fn read_prog_byte(&self, delta: u16) -> u8 {
         self.bus.read_byte(self.reg.pc.wrapping_sub(delta))
     }
