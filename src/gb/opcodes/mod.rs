@@ -1,3 +1,3 @@
+pub mod ops;
 pub mod opcode;
-pub mod opfuncs;
-pub mod optable;
+pub mod table;

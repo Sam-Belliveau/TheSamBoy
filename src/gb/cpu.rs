@@ -1,7 +1,7 @@
 use crate::gb::hardware::memory_bus::MemoryBus;
 use crate::gb::hardware::registers::Registers;
-use crate::gb::opcodes::opfuncs::op;
-use crate::gb::opcodes::optable::*;
+use crate::gb::opcodes::ops;
+use crate::gb::opcodes::table;
 
 use std::fs::File;
 
@@ -22,12 +22,12 @@ impl CPU {
     }
 
     pub fn step(&mut self) {
-        let op = &OP_TABLE[self.read_prog_byte(0) as usize];
+        let op = &table::OP_TABLE[self.read_prog_byte(0) as usize];
         self.reg.pc = self.reg.pc.wrapping_add(op.size);
 
         let cycles = op.exec(self);
 
-        if cycles == op::UNKNOWN_RETURN_CODE {
+        if cycles == ops::errors::UNKNOWN_RETURN_CODE {
             println!("Unimplemented OP Code! {}", op);
         } else {
             self.cycles += cycles;
