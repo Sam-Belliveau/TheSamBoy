@@ -99,13 +99,57 @@ pub fn ld_bc_a(cpu: &mut CPU) -> usize {
     8
 }
 
-pub fn ld_b_d8(cpu: &mut CPU) -> usize {
-    cpu.reg.b = cpu.read_prog_byte(1);
+pub fn ld_de_a(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_de();
+    cpu.bus.write_byte(addr, cpu.reg.a);
     8
 }
 
+pub fn ld_hl_inc_a(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_hl();
+    cpu.bus.write_byte(addr, cpu.reg.a);
+    cpu.reg.set_hl(cpu.reg.get_hl().wrapping_add(1));
+    8
+}
+
+pub fn ld_hl_dec_a(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_hl();
+    cpu.bus.write_byte(addr, cpu.reg.a);
+    cpu.reg.set_hl(cpu.reg.get_hl().wrapping_sub(1));
+    8
+}
+
+
 pub fn ld_a_bc(cpu: &mut CPU) -> usize {
-    cpu.reg.a = cpu.bus.read_byte(cpu.reg.get_bc());
+    let addr = cpu.reg.get_bc();
+    cpu.reg.a = cpu.bus.read_byte(addr);
+    8
+}
+
+pub fn ld_a_de(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_de();
+    cpu.reg.a = cpu.bus.read_byte(addr);
+    8
+}
+
+pub fn ld_a_hl_inc(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_hl();
+    cpu.reg.a = cpu.bus.read_byte(addr);
+    cpu.reg.set_hl(cpu.reg.get_hl().wrapping_add(1));
+    8
+}
+
+pub fn ld_a_hl_dec(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_hl();
+    cpu.reg.a = cpu.bus.read_byte(addr);
+    cpu.reg.set_hl(cpu.reg.get_hl().wrapping_sub(1));
+    8
+}
+
+
+
+pub fn ld_b_d8(cpu: &mut CPU) -> usize {
+    cpu.reg.b = cpu.read_prog_byte(1);
     8
 }
 
@@ -114,18 +158,7 @@ pub fn ld_c_d8(cpu: &mut CPU) -> usize {
     8
 }
 
-pub fn ld_de_a(cpu: &mut CPU) -> usize{
-    let addr = cpu.reg.get_de();
-    cpu.bus.write_byte(addr, cpu.reg.a);
-    8
-}
-
 pub fn ld_d_d8(cpu: &mut CPU) -> usize{
     cpu.reg.d = cpu.read_prog_byte(1);
-    8
-}
-
-pub fn ld_a_de(cpu: &mut CPU)-> usize {
-    cpu.reg.a = cpu.bus.read_byte(cpu.reg.get_de());
     8
 }

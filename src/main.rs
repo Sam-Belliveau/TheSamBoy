@@ -9,7 +9,7 @@ fn main() {
     let mut cpu = CPU::init(&mut file);
 
     loop {
-        let ten_millis = time::Duration::from_millis(0);
+        let ten_millis = time::Duration::from_millis(4);
         thread::sleep(ten_millis);
         cpu.step();
 
