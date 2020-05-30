@@ -22,18 +22,25 @@ impl CPU {
     }
 
     pub fn step(&mut self) {
-        let op = &table::OP_TABLE[self.read_prog_byte(0) as usize];
+        let byte = self.read_prog_byte(0);
+        let op = &table::OP_TABLE[byte as usize];
+
+        if op.code != byte {
+            println!("OP CODE IS FUCKED");
+        }
+
         self.reg.pc = self.reg.pc.wrapping_add(op.size);
 
         let cycles = op.exec(self);
 
         if cycles == ops::errors::UNKNOWN_RETURN_CODE {
-            println!("Unimplemented OP Code! {}", op);
+            print!("EUI OP Code! {}", op);
         } else {
             self.cycles += cycles;
-            println!("Ran OP Code! {}", op);
+            print!("Ran OP Code! {}", op);
         }
 
+        println!("\t\t{}", self.reg);
     }
 }
 

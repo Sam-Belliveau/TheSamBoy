@@ -21,6 +21,6 @@ impl OPCode {
 
 impl fmt::Display for OPCode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[{:#x?}] {}", self.code, self.name)
+        write!(f, "[{:#04x}] {}", self.code, self.name)
     }
 }

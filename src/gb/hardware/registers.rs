@@ -1,3 +1,4 @@
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub struct Registers {
@@ -123,5 +124,17 @@ impl Registers {
     pub fn set_hl(&mut self, val: u16) {
         self.h = ((val >> 8) & 0xff) as u8;
         self.l = ((val >> 0) & 0xff) as u8;
+    }
+}
+
+impl fmt::Display for Registers {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[pc: {:#06x}, sp: {:#06x}, a: {:#04x}, f: {:#04x}, b: {:#04x}, c: {:#04x}, d: {:#04x}, e: {:#04x}, h: {:#04x}, l: {:#04x}]", 
+            self.pc, self.sp, 
+            self.a, self.f,
+            self.b, self.c,
+            self.d, self.e,
+            self.h, self.l
+        )
     }
 }
