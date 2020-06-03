@@ -5,6 +5,24 @@ use crate::gb::cpu::CPU;
 pub mod alu {
     use crate::gb::cpu::CPU;
 
+    pub mod helper {
+        pub fn add_carry(lhs: u8, rhs: u8) -> bool {
+            (((lhs & 0xff) as i32) + ((rhs & 0xff) as i32)) > 0xff
+        }
+
+        pub fn add_half_carry(lhs: u8, rhs: u8) -> bool {
+            (((lhs & 0x0f) as i32) + ((rhs & 0x0f) as i32)) > 0x0f
+        }
+
+        pub fn sub_borrow(lhs: u8, rhs: u8) -> bool {
+            (((lhs & 0xff) as i32) - ((rhs & 0xff) as i32)) < 0x00
+        }
+
+        pub fn sub_half_borrow(lhs: u8, rhs: u8) -> bool {
+            (((lhs & 0x0f) as i32) - ((rhs & 0x0f) as i32)) > 0x00
+        }
+    }
+
     pub fn add_i8_to_u16(cpu: &mut CPU, lhs: u16, rhs: i8) -> u16 {
         let rhs_u16 = rhs as i16 as u16;
         cpu.reg.set_n_flag(false);
@@ -14,6 +32,7 @@ pub mod alu {
         lhs.wrapping_add(rhs_u16)
     }
 
+    // inc / dec
     pub fn inc(cpu: &mut CPU, val: u8) -> u8 {
         let ret = val.wrapping_add(1);
         cpu.reg.set_z_flag(ret == 0);
@@ -28,6 +47,83 @@ pub mod alu {
         cpu.reg.set_h_flag((ret & 0x0f) == 0x0f);
         cpu.reg.set_n_flag(true);
         ret
+    }
+
+    // Adding
+    pub fn add_a_n(cpu: &mut CPU, n: u8) {
+        let res = cpu.reg.a.wrapping_add(n);
+
+        cpu.reg.set_z_flag(cpu.reg.a == 0);
+        cpu.reg.set_n_flag(false);
+        cpu.reg.set_h_flag(helper::add_half_carry(cpu.reg.a, n));
+        cpu.reg.set_c_flag(helper::add_carry(cpu.reg.a, n));
+
+        cpu.reg.a = res;
+    }
+
+    pub fn adc_a_n(cpu: &mut CPU, n: u8) {
+        if cpu.reg.get_c_flag() {
+            add_a_n(cpu, n.wrapping_add(1))
+        } else {
+            add_a_n(cpu, n)
+        }
+    }
+
+    // subtracting
+    pub fn sub_n(cpu: &mut CPU, n: u8) {
+        let res = cpu.reg.a.wrapping_add(n);
+
+        cpu.reg.set_z_flag(res == 0);
+        cpu.reg.set_n_flag(true);
+        cpu.reg.set_h_flag(!helper::sub_half_borrow(cpu.reg.a, n));
+        cpu.reg.set_c_flag(!helper::sub_borrow(cpu.reg.a, n));
+
+        cpu.reg.a = res;
+    }
+
+    pub fn sbc_a_n(cpu: &mut CPU, n: u8) {
+        if cpu.reg.get_c_flag() {
+            sub_n(cpu, n.wrapping_add(1))
+        } else {
+            sub_n(cpu, n)
+        }
+    }
+
+    // Bitwise OPs
+    pub fn and_n(cpu: &mut CPU, n: u8) {
+        cpu.reg.a = cpu.reg.a & n;
+
+        cpu.reg.set_z_flag(cpu.reg.a == 0);
+        cpu.reg.set_n_flag(false);
+        cpu.reg.set_h_flag(true);
+        cpu.reg.set_c_flag(false);
+    }
+
+    pub fn xor_n(cpu: &mut CPU, n: u8) {
+        cpu.reg.a = cpu.reg.a ^ n;
+
+        cpu.reg.set_z_flag(cpu.reg.a == 0);
+        cpu.reg.set_n_flag(false);
+        cpu.reg.set_h_flag(false);
+        cpu.reg.set_c_flag(false);
+    }
+
+    pub fn or_n(cpu: &mut CPU, n: u8) {
+        cpu.reg.a = cpu.reg.a | n;
+
+        cpu.reg.set_z_flag(cpu.reg.a == 0);
+        cpu.reg.set_n_flag(false);
+        cpu.reg.set_h_flag(false);
+        cpu.reg.set_c_flag(false);
+    }
+
+    pub fn cp_n(cpu: &mut CPU, n: u8) {
+        let ret = cpu.reg.a.wrapping_sub(n);
+
+        cpu.reg.set_z_flag(ret == 0);
+        cpu.reg.set_n_flag(true);
+        cpu.reg.set_h_flag(!helper::sub_half_borrow(cpu.reg.a, n));
+        cpu.reg.set_c_flag(!helper::sub_borrow(cpu.reg.a, n));
     }
 }
 
@@ -120,3 +216,395 @@ pub fn dec_a(cpu: &mut CPU) -> usize {
     cpu.reg.a = alu::dec(cpu, cpu.reg.a);
     4
 }
+
+// Adding
+pub fn add_a_b(cpu: &mut CPU) -> usize {
+    alu::add_a_n(cpu, cpu.reg.b);
+    4
+}
+
+pub fn add_a_c(cpu: &mut CPU) -> usize {
+    alu::add_a_n(cpu, cpu.reg.c);
+    4
+}
+
+pub fn add_a_d(cpu: &mut CPU) -> usize {
+    alu::add_a_n(cpu, cpu.reg.d);
+    4
+}
+
+pub fn add_a_e(cpu: &mut CPU) -> usize {
+    alu::add_a_n(cpu, cpu.reg.e);
+    4
+}
+
+pub fn add_a_h(cpu: &mut CPU) -> usize {
+    alu::add_a_n(cpu, cpu.reg.h);
+    4
+}
+
+pub fn add_a_l(cpu: &mut CPU) -> usize {
+    alu::add_a_n(cpu, cpu.reg.l);
+    4
+}
+
+pub fn add_a_hl(cpu: &mut CPU) -> usize {
+    let hl = cpu.reg.get_hl();
+    let byte = cpu.bus.read_byte(hl);
+    alu::add_a_n(cpu, byte);
+    8
+} 
+
+pub fn add_a_a(cpu: &mut CPU) -> usize {
+    alu::add_a_n(cpu, cpu.reg.a);
+    4
+}
+
+pub fn add_a_d8(cpu: &mut CPU) -> usize {
+    let byte = cpu.read_prog_byte(1);
+    alu::add_a_n(cpu, byte);
+    8
+} 
+
+// Adding With Carry
+pub fn adc_a_b(cpu: &mut CPU) -> usize {
+    alu::adc_a_n(cpu, cpu.reg.b);
+    4
+}
+
+pub fn adc_a_c(cpu: &mut CPU) -> usize {
+    alu::adc_a_n(cpu, cpu.reg.c);
+    4
+}
+
+pub fn adc_a_d(cpu: &mut CPU) -> usize {
+    alu::adc_a_n(cpu, cpu.reg.d);
+    4
+}
+
+pub fn adc_a_e(cpu: &mut CPU) -> usize {
+    alu::adc_a_n(cpu, cpu.reg.e);
+    4
+}
+
+pub fn adc_a_h(cpu: &mut CPU) -> usize {
+    alu::adc_a_n(cpu, cpu.reg.h);
+    4
+}
+
+pub fn adc_a_l(cpu: &mut CPU) -> usize {
+    alu::adc_a_n(cpu, cpu.reg.l);
+    4
+}
+
+pub fn adc_a_hl(cpu: &mut CPU) -> usize {
+    let hl = cpu.reg.get_hl();
+    let byte = cpu.bus.read_byte(hl);
+    alu::adc_a_n(cpu, byte);
+    8
+} 
+
+pub fn adc_a_a(cpu: &mut CPU) -> usize {
+    alu::adc_a_n(cpu, cpu.reg.a);
+    4
+}
+
+pub fn adc_a_d8(cpu: &mut CPU) -> usize {
+    let byte = cpu.read_prog_byte(1);
+    alu::adc_a_n(cpu, byte);
+    8
+} 
+
+// Subing
+pub fn sub_b(cpu: &mut CPU) -> usize {
+    alu::sub_n(cpu, cpu.reg.b);
+    4
+}
+
+pub fn sub_c(cpu: &mut CPU) -> usize {
+    alu::sub_n(cpu, cpu.reg.c);
+    4
+}
+
+pub fn sub_d(cpu: &mut CPU) -> usize {
+    alu::sub_n(cpu, cpu.reg.d);
+    4
+}
+
+pub fn sub_e(cpu: &mut CPU) -> usize {
+    alu::sub_n(cpu, cpu.reg.e);
+    4
+}
+
+pub fn sub_h(cpu: &mut CPU) -> usize {
+    alu::sub_n(cpu, cpu.reg.h);
+    4
+}
+
+pub fn sub_l(cpu: &mut CPU) -> usize {
+    alu::sub_n(cpu, cpu.reg.l);
+    4
+}
+
+pub fn sub_hl(cpu: &mut CPU) -> usize {
+    let hl = cpu.reg.get_hl();
+    let byte = cpu.bus.read_byte(hl);
+    alu::sub_n(cpu, byte);
+    8
+} 
+
+pub fn sub_a(cpu: &mut CPU) -> usize {
+    alu::sub_n(cpu, cpu.reg.a);
+    4
+}
+
+pub fn sub_d8(cpu: &mut CPU) -> usize {
+    let byte = cpu.read_prog_byte(1);
+    alu::sub_n(cpu, byte);
+    8
+} 
+
+// Subing With Carry
+pub fn sbc_a_b(cpu: &mut CPU) -> usize {
+    alu::sbc_a_n(cpu, cpu.reg.b);
+    4
+}
+
+pub fn sbc_a_c(cpu: &mut CPU) -> usize {
+    alu::sbc_a_n(cpu, cpu.reg.c);
+    4
+}
+
+pub fn sbc_a_d(cpu: &mut CPU) -> usize {
+    alu::sbc_a_n(cpu, cpu.reg.d);
+    4
+}
+
+pub fn sbc_a_e(cpu: &mut CPU) -> usize {
+    alu::sbc_a_n(cpu, cpu.reg.e);
+    4
+}
+
+pub fn sbc_a_h(cpu: &mut CPU) -> usize {
+    alu::sbc_a_n(cpu, cpu.reg.h);
+    4
+}
+
+pub fn sbc_a_l(cpu: &mut CPU) -> usize {
+    alu::sbc_a_n(cpu, cpu.reg.l);
+    4
+}
+
+pub fn sbc_a_hl(cpu: &mut CPU) -> usize {
+    let hl = cpu.reg.get_hl();
+    let byte = cpu.bus.read_byte(hl);
+    alu::sbc_a_n(cpu, byte);
+    8
+} 
+
+pub fn sbc_a_a(cpu: &mut CPU) -> usize {
+    alu::sbc_a_n(cpu, cpu.reg.a);
+    4
+}
+
+pub fn sbc_a_d8(cpu: &mut CPU) -> usize {
+    let byte = cpu.read_prog_byte(1);
+    alu::sbc_a_n(cpu, byte);
+    8
+} 
+
+// And
+pub fn and_b(cpu: &mut CPU) -> usize {
+    alu::and_n(cpu, cpu.reg.b);
+    4
+}
+
+pub fn and_c(cpu: &mut CPU) -> usize {
+    alu::and_n(cpu, cpu.reg.c);
+    4
+}
+
+pub fn and_d(cpu: &mut CPU) -> usize {
+    alu::and_n(cpu, cpu.reg.d);
+    4
+}
+
+pub fn and_e(cpu: &mut CPU) -> usize {
+    alu::and_n(cpu, cpu.reg.e);
+    4
+}
+
+pub fn and_h(cpu: &mut CPU) -> usize {
+    alu::and_n(cpu, cpu.reg.h);
+    4
+}
+
+pub fn and_l(cpu: &mut CPU) -> usize {
+    alu::and_n(cpu, cpu.reg.l);
+    4
+}
+
+pub fn and_hl(cpu: &mut CPU) -> usize {
+    let hl = cpu.reg.get_hl();
+    let byte = cpu.bus.read_byte(hl);
+    alu::and_n(cpu, byte);
+    8
+} 
+
+pub fn and_a(cpu: &mut CPU) -> usize {
+    alu::and_n(cpu, cpu.reg.a);
+    4
+}
+
+pub fn and_d8(cpu: &mut CPU) -> usize {
+    let byte = cpu.read_prog_byte(1);
+    alu::and_n(cpu, byte);
+    8
+} 
+
+// Xor
+pub fn xor_b(cpu: &mut CPU) -> usize {
+    alu::xor_n(cpu, cpu.reg.b);
+    4
+}
+
+pub fn xor_c(cpu: &mut CPU) -> usize {
+    alu::xor_n(cpu, cpu.reg.c);
+    4
+}
+
+pub fn xor_d(cpu: &mut CPU) -> usize {
+    alu::xor_n(cpu, cpu.reg.d);
+    4
+}
+
+pub fn xor_e(cpu: &mut CPU) -> usize {
+    alu::xor_n(cpu, cpu.reg.e);
+    4
+}
+
+pub fn xor_h(cpu: &mut CPU) -> usize {
+    alu::xor_n(cpu, cpu.reg.h);
+    4
+}
+
+pub fn xor_l(cpu: &mut CPU) -> usize {
+    alu::xor_n(cpu, cpu.reg.l);
+    4
+}
+
+pub fn xor_hl(cpu: &mut CPU) -> usize {
+    let hl = cpu.reg.get_hl();
+    let byte = cpu.bus.read_byte(hl);
+    alu::xor_n(cpu, byte);
+    8
+} 
+
+pub fn xor_a(cpu: &mut CPU) -> usize {
+    alu::xor_n(cpu, cpu.reg.a);
+    4
+}
+
+pub fn xor_d8(cpu: &mut CPU) -> usize {
+    let byte = cpu.read_prog_byte(1);
+    alu::xor_n(cpu, byte);
+    8
+} 
+
+// Or
+pub fn or_b(cpu: &mut CPU) -> usize {
+    alu::or_n(cpu, cpu.reg.b);
+    4
+}
+
+pub fn or_c(cpu: &mut CPU) -> usize {
+    alu::or_n(cpu, cpu.reg.c);
+    4
+}
+
+pub fn or_d(cpu: &mut CPU) -> usize {
+    alu::or_n(cpu, cpu.reg.d);
+    4
+}
+
+pub fn or_e(cpu: &mut CPU) -> usize {
+    alu::or_n(cpu, cpu.reg.e);
+    4
+}
+
+pub fn or_h(cpu: &mut CPU) -> usize {
+    alu::or_n(cpu, cpu.reg.h);
+    4
+}
+
+pub fn or_l(cpu: &mut CPU) -> usize {
+    alu::or_n(cpu, cpu.reg.l);
+    4
+}
+
+pub fn or_hl(cpu: &mut CPU) -> usize {
+    let hl = cpu.reg.get_hl();
+    let byte = cpu.bus.read_byte(hl);
+    alu::or_n(cpu, byte);
+    8
+} 
+
+pub fn or_a(cpu: &mut CPU) -> usize {
+    alu::or_n(cpu, cpu.reg.a);
+    4
+}
+
+pub fn or_d8(cpu: &mut CPU) -> usize {
+    let byte = cpu.read_prog_byte(1);
+    alu::or_n(cpu, byte);
+    8
+} 
+
+// CP
+pub fn cp_b(cpu: &mut CPU) -> usize {
+    alu::cp_n(cpu, cpu.reg.b);
+    4
+}
+
+pub fn cp_c(cpu: &mut CPU) -> usize {
+    alu::cp_n(cpu, cpu.reg.c);
+    4
+}
+
+pub fn cp_d(cpu: &mut CPU) -> usize {
+    alu::cp_n(cpu, cpu.reg.d);
+    4
+}
+
+pub fn cp_e(cpu: &mut CPU) -> usize {
+    alu::cp_n(cpu, cpu.reg.e);
+    4
+}
+
+pub fn cp_h(cpu: &mut CPU) -> usize {
+    alu::cp_n(cpu, cpu.reg.h);
+    4
+}
+
+pub fn cp_l(cpu: &mut CPU) -> usize {
+    alu::cp_n(cpu, cpu.reg.l);
+    4
+}
+
+pub fn cp_hl(cpu: &mut CPU) -> usize {
+    let hl = cpu.reg.get_hl();
+    let byte = cpu.bus.read_byte(hl);
+    alu::cp_n(cpu, byte);
+    8
+} 
+
+pub fn cp_a(cpu: &mut CPU) -> usize {
+    alu::cp_n(cpu, cpu.reg.a);
+    4
+}
+
+pub fn cp_d8(cpu: &mut CPU) -> usize {
+    let byte = cpu.read_prog_byte(1);
+    alu::cp_n(cpu, byte);
+    8
+} 

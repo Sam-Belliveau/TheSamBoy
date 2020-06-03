@@ -1,6 +1,7 @@
 use crate::gb::hardware::cartridge::Cartridge;
 use crate::gb::hardware::gpu::GPU;
 use crate::gb::hardware::work_ram::WorkRAM;
+use crate::gb::hardware::io_registers::IORegisters;
 
 use std::fs::File;
 
@@ -11,10 +12,11 @@ pub type HighRAM = [u8; HIGH_RAM_SIZE];
 ////////// MEMORY BUS //////////
 #[derive(Clone)]
 pub struct MemoryBus {
-    rom: Cartridge,
-    gpu: GPU,
-    ram: WorkRAM,
-    hram: HighRAM,
+    pub rom: Cartridge,
+    pub gpu: GPU,
+    pub ram: WorkRAM,
+    pub io: IORegisters,
+    pub hram: HighRAM,
 }
 
 impl MemoryBus {
@@ -25,6 +27,7 @@ impl MemoryBus {
             rom: Cartridge::load(cartridge),
             gpu: GPU::init(),
             ram: WorkRAM::init(),
+            io: IORegisters::init(),
             hram: [0; HIGH_RAM_SIZE],
         }
     }
@@ -57,19 +60,24 @@ impl MemoryBus {
             0xe000..=0xfdff => self.read_byte(idx - 0x2000),
             
             // Sprite Attribute Table (OAM)
-            0xfe00..=0xfe9f => 0, // TODO: figure this out
+            // 0xfe00..=0xfe9f => 0, // TODO: figure this out
             
             // Not Usable
-            0xfea0..=0xfeff => 0, // TODO: figure this out
+            // 0xfea0..=0xfeff => 0, // TODO: figure this out
             
             // I/O Ports
-            0xff00..=0xff7f => 0, // TODO: figure this out
+            0xff00..=0xff7f => self.io.read_byte(idx),
             
             // High RAM
-            0xff80..=0xfffe => self.hram[(idx - 0xff80) as usize],
+            // 0xff80..=0xfffe => self.hram[(idx - 0xff80) as usize],
             
             // Interrupt Enable Register
-            0xffff => 0, // TODO: figure this out
+            0xffff => self.io.read_byte(idx),
+
+            _ => {
+                println!("Unhandled Read from Address [{:#04x?}]", idx);
+                0
+            }
         }
     }
 
@@ -101,16 +109,16 @@ impl MemoryBus {
             // 0xfea0..=0xfeff => 0, // TODO: figure this out
             
             // I/O Ports
-            // 0xff00..=0xff7f => 0, // TODO: figure this out
+            0xff00..=0xff7f => self.io.write_byte(idx, val),
             
             // High RAM
             0xff80..=0xfffe => self.hram[(idx - 0xff80) as usize] = val,
             
             // Interrupt Enable Register
-            // 0xffff => 0, // TODO: figure this out
+            0xffff => self.io.write_byte(idx, val),
 
             _ => {
-                println!("Unhandled Write to Address [{:#x?}]", idx);
+                println!("Unhandled Write to Address [{:#04x?}] [val: {:#02x?}]", idx, val);
             },
         }
     }

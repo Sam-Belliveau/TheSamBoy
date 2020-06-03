@@ -6,41 +6,38 @@ pub fn nop(_: &mut CPU) -> usize {
     4
 }
 
-pub fn stop(_: &mut CPU) -> usize {
+pub fn stop(cpu: &mut CPU) -> usize {
     // halt CPU & LCD display until button pressed.
+    if(cpu.interrupts) {
+        cpu.stopped = true;
+    }
     4
 }
 
-pub fn halt(_: &mut CPU) -> usize {
+pub fn halt(cpu: &mut CPU) -> usize {
     // Power down CPU until an interrupt occurs. 
     // Use this  when ever possible to reduce energy consumption
+    if(cpu.interrupts) {
+        cpu.halted = true;
+    }
     4
 }
 
 pub fn prefix_cb(cpu: &mut CPU) -> usize  {
-    // Get next OP Code
     let code = cpu.read_prog_byte(0);
-
     let op = &table::CB_OP_TABLE[code as usize];
-    cpu.reg.pc = cpu.reg.pc.wrapping_add(op.size);
     
-    let cycles = op.exec(cpu);
+    cpu.exec(op);
 
-    if cycles == errors::UNKNOWN_RETURN_CODE {
-        cpu.reg.pc = cpu.reg.pc.wrapping_add(1);
-        println!("Unimplemented CB Code! {}", op);
-        4
-    } else {
-        4 + cycles
-    }
-}
-
-pub fn di(_: &mut CPU) -> usize {
-    // Disables Interrupts
     4
 }
 
-pub fn ei(_: &mut CPU) -> usize {
-    // Enable Interrupts
+pub fn di(cpu: &mut CPU) -> usize {
+    cpu.interrupts = false;
+    4
+}
+
+pub fn ei(cpu: &mut CPU) -> usize {
+    cpu.interrupts = true;
     4
 }

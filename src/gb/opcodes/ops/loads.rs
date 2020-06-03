@@ -147,7 +147,7 @@ pub fn ld_a_hl_dec(cpu: &mut CPU) -> usize {
 }
 
 
-
+// Program Loads
 pub fn ld_b_d8(cpu: &mut CPU) -> usize {
     cpu.reg.b = cpu.read_prog_byte(1);
     8
@@ -158,7 +158,72 @@ pub fn ld_c_d8(cpu: &mut CPU) -> usize {
     8
 }
 
-pub fn ld_d_d8(cpu: &mut CPU) -> usize{
+pub fn ld_d_d8(cpu: &mut CPU) -> usize {
     cpu.reg.d = cpu.read_prog_byte(1);
     8
+}
+
+pub fn ld_e_d8(cpu: &mut CPU) -> usize {
+    cpu.reg.e = cpu.read_prog_byte(1);
+    8
+}
+
+pub fn ld_h_d8(cpu: &mut CPU) -> usize {
+    cpu.reg.h = cpu.read_prog_byte(1);
+    8
+}
+
+pub fn ld_l_d8(cpu: &mut CPU) -> usize {
+    cpu.reg.l = cpu.read_prog_byte(1);
+    8
+}
+
+pub fn ld_hl_d8(cpu: &mut CPU) -> usize {
+    let hl = cpu.reg.get_hl();
+    let byte = cpu.read_prog_byte(1);
+    cpu.bus.write_byte(hl, byte);
+    8
+}
+
+pub fn ld_a_d8(cpu: &mut CPU) -> usize {
+    cpu.reg.a = cpu.read_prog_byte(1);
+    8
+}
+
+
+// Address Loads
+pub fn ldh_a8_a(cpu: &mut CPU) -> usize {
+    let addr: u16 = 0xff00 + cpu.read_prog_byte(1) as u16;
+    cpu.bus.write_byte(addr, cpu.reg.a);
+    12
+}
+
+pub fn ldh_a_a8(cpu: &mut CPU) -> usize {
+    let addr: u16 = 0xff00 + cpu.read_prog_byte(1) as u16;
+    cpu.reg.a = cpu.bus.read_byte(addr);
+    12
+}
+
+pub fn ld_addr_c_a(cpu: &mut CPU) -> usize {
+    let addr: u16 = 0xff00 + cpu.reg.c as u16;
+    cpu.bus.write_byte(addr, cpu.reg.a);
+    12
+}
+
+pub fn ld_a_addr_c(cpu: &mut CPU) -> usize {
+    let addr: u16 = 0xff00 + cpu.reg.c as u16;
+    cpu.reg.a = cpu.bus.read_byte(addr);
+    12
+}
+
+pub fn ld_a16_a(cpu: &mut CPU) -> usize {
+    let addr: u16 = cpu.read_prog_word(2);
+    cpu.bus.write_byte(addr, cpu.reg.a);
+    12
+}
+
+pub fn ld_a_a16(cpu: &mut CPU) -> usize {
+    let addr: u16 = cpu.read_prog_word(2);
+    cpu.reg.a = cpu.bus.read_byte(addr);
+    12
 }

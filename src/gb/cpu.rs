@@ -2,6 +2,7 @@ use crate::gb::hardware::memory_bus::MemoryBus;
 use crate::gb::hardware::registers::Registers;
 use crate::gb::opcodes::ops;
 use crate::gb::opcodes::table;
+use crate::gb::opcodes::opcode::OPCode;
 
 use std::fs::File;
 
@@ -9,6 +10,11 @@ use std::fs::File;
 pub struct CPU {
     pub bus: MemoryBus,
     pub reg: Registers,
+
+    pub interrupts: bool,
+    pub stopped: bool,
+    pub halted: bool,
+
     pub cycles: usize, 
 }
 
@@ -17,16 +23,31 @@ impl CPU {
         Self {
             bus: MemoryBus::init(cartridge),
             reg: Registers::init(),
+
+            interrupts: true,
+            stopped: false,
+            halted: false,
+
             cycles: 0,
         }
     }
 
     pub fn step(&mut self) {
-        let byte = self.read_prog_byte(0);
-        let op = &table::OP_TABLE[byte as usize];
+        if self.halted {
+            println!("HALTED");
+        } else if self.stopped {
+            println!("STOPPED");
+        } else {
+            let byte = self.read_prog_byte(0);
+            let op = &table::OP_TABLE[byte as usize];
+    
+            self.exec(op);
+        }
+    }
 
-        if op.code != byte {
-            println!("OP CODE IS FUCKED");
+    pub fn exec(&mut self, op: &OPCode) {
+        if op.code != self.read_prog_byte(0) {
+            panic!("Mismatched OP Code [{}]!", op)
         }
 
         self.reg.pc = self.reg.pc.wrapping_add(op.size);
@@ -35,12 +56,19 @@ impl CPU {
 
         if cycles == ops::errors::UNKNOWN_RETURN_CODE {
             print!("EUI OP Code! {}", op);
+            // panic!("UNKNOWN OP CODE");
         } else {
             self.cycles += cycles;
             print!("Ran OP Code! {}", op);
         }
 
         println!("\t\t{}", self.reg);
+    }
+}
+
+impl CPU {
+    pub fn get_rom_name(&self) -> String {
+        self.bus.rom.get_name()
     }
 }
 
