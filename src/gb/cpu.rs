@@ -43,6 +43,9 @@ impl CPU {
     
             self.exec(op);
         }
+
+        self.bus.step(self.cycles);
+        self.cycles = 0;
     }
 
     pub fn exec(&mut self, op: &OPCode) {
@@ -56,7 +59,7 @@ impl CPU {
 
         if cycles == ops::errors::UNKNOWN_RETURN_CODE {
             print!("EUI OP Code! {}", op);
-            // panic!("UNKNOWN OP CODE");
+            //panic!("EUI OP Code! {}", op);
         } else {
             self.cycles += cycles;
             print!("Ran OP Code! {}", op);

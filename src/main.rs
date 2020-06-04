@@ -28,17 +28,9 @@ fn main() {
     });
 
     while window.is_open() {
-        cpu.cycles = 0x0000;
-        if window.is_key_down(Key::Space) {
-            while cpu.cycles < 0x1 {
-                cpu.step();
-            }
-        } else {
-            while cpu.cycles < 0x1000 {
-                cpu.step();
-            }
+        for i in 0x0000..0x0400 {
+            cpu.step();
         }
-
 
         for i in 0x0000..=0xffff {
             let byte = cpu.bus.read_byte(i);

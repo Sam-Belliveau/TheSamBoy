@@ -1,7 +1,10 @@
 use crate::gb::hardware::cartridge::Cartridge;
-use crate::gb::hardware::gpu::GPU;
 use crate::gb::hardware::work_ram::WorkRAM;
-use crate::gb::hardware::io_registers::IORegisters;
+
+use crate::gb::hardware::io::gpu::GPU;
+use crate::gb::hardware::io::serial::Serial;
+use crate::gb::hardware::io::sound::Sound;
+use crate::gb::hardware::io::timer::Timer;
 
 use std::fs::File;
 
@@ -13,9 +16,16 @@ pub type HighRAM = [u8; HIGH_RAM_SIZE];
 #[derive(Clone)]
 pub struct MemoryBus {
     pub rom: Cartridge,
+    
     pub gpu: GPU,
+    pub serial: Serial,
+    pub sound: Sound,
+    pub timer: Timer,
+
+    pub intf: u8,
+    pub inte: u8,
+
     pub ram: WorkRAM,
-    pub io: IORegisters,
     pub hram: HighRAM,
 }
 
@@ -25,11 +35,31 @@ impl MemoryBus {
     pub fn init(cartridge: &mut File) -> Self {
         Self {
             rom: Cartridge::load(cartridge),
+
             gpu: GPU::init(),
+            serial: Serial::init(),
+            sound: Sound::init(),
+            timer: Timer::init(),
+
+            intf: 0,
+            inte: 0,
+
             ram: WorkRAM::init(),
-            io: IORegisters::init(),
             hram: [0; HIGH_RAM_SIZE],
         }
+    }
+
+}
+
+impl MemoryBus {
+
+    pub fn step(&mut self, cycles: usize) {
+
+        self.gpu.step(cycles);
+        self.serial.step(cycles);
+        self.sound.step(cycles);
+        self.timer.step(cycles);
+
     }
 
 }
@@ -66,13 +96,18 @@ impl MemoryBus {
             // 0xfea0..=0xfeff => 0, // TODO: figure this out
             
             // I/O Ports
-            0xff00..=0xff7f => self.io.read_byte(idx),
-            
+            0xff00 => self.gpu.read_io_byte(idx),
+            0xff01..=0xff02 => self.serial.read_io_byte(idx),
+            0xff01..=0xff0e => self.timer.read_io_byte(idx),
+            0xff0f => self.intf,
+            0xff10..=0xff3f => self.sound.read_io_byte(idx),
+            0xff40..=0xff45 => self.gpu.read_io_byte(idx),
+
             // High RAM
-            // 0xff80..=0xfffe => self.hram[(idx - 0xff80) as usize],
+            0xff80..=0xfffe => self.hram[(idx - 0xff80) as usize],
             
             // Interrupt Enable Register
-            0xffff => self.io.read_byte(idx),
+            0xffff => self.inte,
 
             _ => {
                 println!("Unhandled Read from Address [{:#04x?}]", idx);
@@ -109,13 +144,18 @@ impl MemoryBus {
             // 0xfea0..=0xfeff => 0, // TODO: figure this out
             
             // I/O Ports
-            0xff00..=0xff7f => self.io.write_byte(idx, val),
+            0xff00 => self.gpu.write_io_byte(idx, val),
+            0xff01..=0xff02 => self.serial.write_io_byte(idx, val),
+            0xff01..=0xff0e => self.timer.write_io_byte(idx, val),
+            0xff0f => self.intf = val,
+            0xff10..=0xff3f => self.sound.write_io_byte(idx, val),
+            0xff40..=0xff45 => self.gpu.write_io_byte(idx, val),
             
             // High RAM
             0xff80..=0xfffe => self.hram[(idx - 0xff80) as usize] = val,
             
             // Interrupt Enable Register
-            0xffff => self.io.write_byte(idx, val),
+            0xffff => self.inte = val,
 
             _ => {
                 println!("Unhandled Write to Address [{:#04x?}] [val: {:#02x?}]", idx, val);

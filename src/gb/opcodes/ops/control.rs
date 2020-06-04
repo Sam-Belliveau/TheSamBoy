@@ -1,6 +1,5 @@
 use crate::gb::cpu::CPU;
 use crate::gb::opcodes::table;
-use crate::gb::opcodes::ops::errors;
 
 pub fn nop(_: &mut CPU) -> usize {
     4
@@ -8,7 +7,7 @@ pub fn nop(_: &mut CPU) -> usize {
 
 pub fn stop(cpu: &mut CPU) -> usize {
     // halt CPU & LCD display until button pressed.
-    if(cpu.interrupts) {
+    if cpu.interrupts {
         cpu.stopped = true;
     }
     4
@@ -17,7 +16,7 @@ pub fn stop(cpu: &mut CPU) -> usize {
 pub fn halt(cpu: &mut CPU) -> usize {
     // Power down CPU until an interrupt occurs. 
     // Use this  when ever possible to reduce energy consumption
-    if(cpu.interrupts) {
+    if cpu.interrupts {
         cpu.halted = true;
     }
     4

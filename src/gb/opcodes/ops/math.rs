@@ -120,6 +120,7 @@ pub mod alu {
     pub fn cp_n(cpu: &mut CPU, n: u8) {
         let ret = cpu.reg.a.wrapping_sub(n);
 
+        println!("CP A < {:#02x?}", n);
         cpu.reg.set_z_flag(ret == 0);
         cpu.reg.set_n_flag(true);
         cpu.reg.set_h_flag(!helper::sub_half_borrow(cpu.reg.a, n));
@@ -160,7 +161,7 @@ pub fn inc_l(cpu: &mut CPU) -> usize {
     4
 }
 
-pub fn inc_hl(cpu: &mut CPU) -> usize {
+pub fn inc_addr_hl(cpu: &mut CPU) -> usize {
     let hl = cpu.reg.get_hl();
     let byte = cpu.bus.read_byte(hl);
     let res = alu::inc(cpu, byte);
@@ -204,7 +205,7 @@ pub fn dec_l(cpu: &mut CPU) -> usize {
     4
 }
 
-pub fn dec_hl(cpu: &mut CPU) -> usize {
+pub fn dec_addr_hl(cpu: &mut CPU) -> usize {
     let hl = cpu.reg.get_hl();
     let byte = cpu.bus.read_byte(hl);
     let res = alu::dec(cpu, byte);
@@ -214,6 +215,54 @@ pub fn dec_hl(cpu: &mut CPU) -> usize {
 
 pub fn dec_a(cpu: &mut CPU) -> usize {
     cpu.reg.a = alu::dec(cpu, cpu.reg.a);
+    4
+}
+
+// Misc
+pub fn daa(cpu: &mut CPU) -> usize {
+    let mut adjust : u8 = if cpu.reg.get_c_flag() { 0x60 } else { 0x00 };
+    
+    if cpu.reg.get_h_flag() {
+        adjust |= 0x6;
+    }
+
+    if cpu.reg.get_n_flag() {
+        cpu.reg.a = cpu.reg.a.wrapping_sub(adjust);
+    } else {
+        if (cpu.reg.a & 0x0f) > 0x09 { adjust |= 0x06; }
+        if (cpu.reg.a & 0xff) > 0x99 { adjust |= 0x60; }
+        cpu.reg.a = cpu.reg.a.wrapping_add(adjust);
+    }
+
+    cpu.reg.set_z_flag(cpu.reg.a == 0);
+    cpu.reg.set_h_flag(false);
+    cpu.reg.set_c_flag(adjust >= 0x60);
+
+    4
+}
+
+pub fn cpl(cpu: &mut CPU) -> usize {
+    cpu.reg.a = 0xff ^ cpu.reg.a;
+
+    cpu.reg.set_n_flag(true);
+    cpu.reg.set_h_flag(true);
+    
+    4
+}
+
+pub fn ccf(cpu: &mut CPU) -> usize {
+    cpu.reg.set_n_flag(false);
+    cpu.reg.set_h_flag(false);
+    cpu.reg.set_h_flag(!cpu.reg.get_c_flag());
+    
+    4
+}
+
+pub fn scf(cpu: &mut CPU) -> usize {
+    cpu.reg.set_n_flag(false);
+    cpu.reg.set_h_flag(false);
+    cpu.reg.set_h_flag(true);
+    
     4
 }
 
@@ -606,5 +655,47 @@ pub fn cp_a(cpu: &mut CPU) -> usize {
 pub fn cp_d8(cpu: &mut CPU) -> usize {
     let byte = cpu.read_prog_byte(1);
     alu::cp_n(cpu, byte);
+    8
+} 
+
+// 16 bit math
+pub fn inc_bc(cpu: &mut CPU) -> usize {
+    cpu.reg.set_bc(cpu.reg.get_bc().wrapping_add(1));
+    8
+} 
+
+pub fn inc_de(cpu: &mut CPU) -> usize {
+    cpu.reg.set_de(cpu.reg.get_de().wrapping_add(1));
+    8
+} 
+
+pub fn inc_hl(cpu: &mut CPU) -> usize {
+    cpu.reg.set_hl(cpu.reg.get_hl().wrapping_add(1));
+    8
+} 
+
+pub fn inc_sp(cpu: &mut CPU) -> usize {
+    cpu.reg.sp = (cpu.reg.sp.wrapping_add(1));
+    8
+} 
+
+
+pub fn dec_bc(cpu: &mut CPU) -> usize {
+    cpu.reg.set_bc(cpu.reg.get_bc().wrapping_sub(1));
+    8
+} 
+
+pub fn dec_de(cpu: &mut CPU) -> usize {
+    cpu.reg.set_de(cpu.reg.get_de().wrapping_sub(1));
+    8
+} 
+
+pub fn dec_hl(cpu: &mut CPU) -> usize {
+    cpu.reg.set_hl(cpu.reg.get_hl().wrapping_sub(1));
+    8
+} 
+
+pub fn dec_sp(cpu: &mut CPU) -> usize {
+    cpu.reg.sp = (cpu.reg.sp.wrapping_sub(1));
     8
 } 

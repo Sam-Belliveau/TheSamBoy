@@ -227,3 +227,9 @@ pub fn ld_a_a16(cpu: &mut CPU) -> usize {
     cpu.reg.a = cpu.bus.read_byte(addr);
     12
 }
+
+// Register Loads (oh boy is there a lot)
+pub fn ld_a_b(cpu: &mut CPU) -> usize {
+    cpu.reg.a = cpu.reg.b;
+    4
+}
