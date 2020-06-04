@@ -23,6 +23,8 @@ pub struct GPU {
     vram_bank: u8,
     vram_banks: Vec<VRAMBank>,
 
+    interrupt: u8,
+
     // IO Registers
     ldcd: u8,
     stat: u8,
@@ -65,6 +67,8 @@ impl GPU {
             vram_bank: 0,
             vram_banks: vec![[0; VRAM_BANK_SIZE]; VRAM_BANK_NUM],
 
+            interrupt: 0,
+
             ldcd: 0,
             stat: 0,
 
@@ -92,18 +96,27 @@ impl GPU {
 
         self.cycle += cycles;
 
-        if(self.cycle > 0x1000) {
-            self.ly += 1;    
+        if(self.cycle > 6666) {
+            self.ly += 1; 
+            self.cycle = 0;
         }
 
         if self.ly >= 153 {
             self.ly = 0;
             
+            self.interrupt |= 0x01;
+
             self.update_tile_map();
             if let Some(win) = Rc::get_mut(&mut self.window) {
                 win.update_with_buffer(&self.fbuffer, WIDTH, HEIGHT).unwrap();
             }
         }
+    }
+
+    pub fn get_interrupt(&mut self) -> u8 {
+        let ret = self.interrupt;
+        self.interrupt = 0;
+        ret
     }
 }
 
@@ -148,10 +161,10 @@ impl GPU {
             0xff4a => self.wy,
             0xff4b => self.wx,
 
-            0xff4f => self.vram_bank,
+            0xff4f => self.get_bank(),
             
             _ => {
-                println!("Unhandled GPU Read from Address [{:#04x?}]", idx);
+                //dprintln!("Unhandled GPU Read from Address [{:#04x?}]", idx);
                 0
             }
         }
@@ -161,7 +174,7 @@ impl GPU {
         match idx {
             0xff00 => self.keypad = (self.keypad & 0xcf) | (val & 0x30),
 
-            0xff40 => self.ldcd = val,
+            0xff40 => self.ldcd = (self.keypad & 0x07) | (val & 0xf8),
             0xff41 => self.stat = val,
             0xff42 => self.scy = val,
             0xff43 => self.scx = val,
@@ -175,7 +188,7 @@ impl GPU {
             0xff4a => self.wy = val,
             0xff4b => self.wx = val,
 
-            0xff4f => self.vram_bank = val,
+            0xff4f => self.set_bank(val),
 
             _ => {
                 println!("Unhandled GPU Write from Address [{:#04x?}] [{:#02x?}]", idx, val);
@@ -196,6 +209,10 @@ impl GPU {
         if self.window.as_ref().is_key_down(Key::B)     { self.keypad |= 1 << 5; }
         if self.window.as_ref().is_key_down(Key::Z)     { self.keypad |= 1 << 6; }
         if self.window.as_ref().is_key_down(Key::X)     { self.keypad |= 1 << 7; }
+
+        if self.keypad != 0 {
+            self.interrupt |= 1 << 4;
+        }
     }
 
 }
@@ -222,20 +239,16 @@ impl GPU {
             
             for x in 0..8 {
                 let bits = (((line >> (2 * x)) & 0x03) as u32) * 0x0f;
-                if bits == 0 {
-                    self.set_pixel(x + xpos, y + ypos, 0xffffffff );
-                } else {
-                    self.set_pixel(x + xpos, y + ypos, 0x00000000);
-                }
-                // let color = (bits << 0) | (bits << 8) | (bits << 16) | (bits << 24);
+                let color = (bits << 0) | (bits << 8) | (bits << 16) | (bits << 24);
+                self.set_pixel(x + xpos, y + ypos, color);
             }
         }
     }
 
     fn update_tile_map(&mut self) {
         if (self.ldcd & (1 << 6)) == 0 {
-            for tile in 0x000..=0x400 {
-                let tile_id = self.read_vram_byte(tile + 0x1800) as u8 as u16;
+            for tile in 0x000..0x400 {
+                let tile_id = self.read_vram_byte(tile + 0x1c00) as u8 as u16;
                 let tile_addr = 0x0000 + 32 * tile_id;
                 let x = (tile * 8) as usize;
                 let y = ((tile * 8 / (WIDTH as u16)) * 8) as usize;
@@ -243,9 +256,9 @@ impl GPU {
                 self.write_tile(x, y, tile_addr);
             }
         } else {
-            for tile in 0x000..=0x400 {
-                let tile_id = self.read_vram_byte(tile + 0x1c00) as i8 as i32;
-                let tile_addr = ((0x0000 as i32) + (32 * tile_id)) as u16;
+            for tile in 0x000..0x400 {
+                let tile_id = self.read_vram_byte(tile + 0x1800) as i8 as i32;
+                let tile_addr = ((0x1000 as i32) + (32 * tile_id)) as u16;
                 let x = (tile * 8) as usize;
                 let y = ((tile * 8 / (WIDTH as u16)) * 8) as usize;
 

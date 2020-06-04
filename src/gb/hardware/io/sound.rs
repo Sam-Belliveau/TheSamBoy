@@ -27,7 +27,7 @@ impl Sound {
         match idx {
             
             _ => {
-                println!("Unhandled Sound Read from Address [{:#04x?}]", idx);
+                //println!("Unhandled Sound Read from Address [{:#04x?}]", idx);
                 0
             }
         }
@@ -37,7 +37,7 @@ impl Sound {
         match idx {
             
             _ => {
-                println!("Unhandled Sound Read from Address [{:#04x?}] [{:#02x?}]", idx, val);
+                println!("Unhandled Sound Write from Address [{:#04x?}] [{:#02x?}]", idx, val);
             }
         }
     }

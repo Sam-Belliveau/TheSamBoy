@@ -2,6 +2,8 @@
 #[derive(Clone)]
 pub struct Timer {
 
+    interrupt: u8,
+
     div: u8, 
     tima: u8, 
     tma: u8, 
@@ -13,6 +15,8 @@ impl Timer {
 
     pub fn init() -> Self {
         Self {
+            interrupt: 0,
+
             div: 0,
             tima: 0,
             tma: 0,
@@ -28,6 +32,12 @@ impl Timer {
         // TODO: idk
     }
 
+
+    pub fn get_interrupt(&mut self) -> u8 {
+        let ret = self.interrupt;
+        self.interrupt = 0;
+        ret
+    }
 }
 
 impl Timer {
@@ -41,7 +51,7 @@ impl Timer {
             
 
             _ => {
-                println!("Unhandled Timer Read from Address [{:#04x?}]", idx);
+                //println!("Unhandled Timer Read from Address [{:#04x?}]", idx);
                 0
             }
         }

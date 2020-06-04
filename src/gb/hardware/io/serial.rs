@@ -2,6 +2,8 @@
 #[derive(Clone)]
 pub struct Serial {
 
+    interrupt: u8,
+
     sb: u8, 
     sc: u8,
 
@@ -11,6 +13,8 @@ impl Serial {
 
     pub fn init() -> Self {
         Self {
+            interrupt: 0,
+
             sb: 0,
             sc: 0,
         }
@@ -24,6 +28,12 @@ impl Serial {
         // TODO: idk
     }
 
+    pub fn get_interrupt(&mut self) -> u8 {
+        let ret = self.interrupt;
+        self.interrupt = 0;
+        ret
+    }
+
 }
 
 impl Serial {
@@ -34,7 +44,7 @@ impl Serial {
             0xff02 => self.sc,
             
             _ => {
-                println!("Unhandled Serial Read from Address [{:#04x?}]", idx);
+                //println!("Unhandled Serial Read from Address [{:#04x?}]", idx);
                 0
             }
         }

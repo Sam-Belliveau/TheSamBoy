@@ -229,7 +229,331 @@ pub fn ld_a_a16(cpu: &mut CPU) -> usize {
 }
 
 // Register Loads (oh boy is there a lot)
+pub fn ld_b_b(cpu: &mut CPU) -> usize {
+    cpu.reg.b = cpu.reg.b;
+    4
+}
+
+pub fn ld_b_c(cpu: &mut CPU) -> usize {
+    cpu.reg.b = cpu.reg.c;
+    4
+}
+
+pub fn ld_b_d(cpu: &mut CPU) -> usize {
+    cpu.reg.b = cpu.reg.d;
+    4
+}
+
+pub fn ld_b_e(cpu: &mut CPU) -> usize {
+    cpu.reg.b = cpu.reg.e;
+    4
+}
+
+pub fn ld_b_h(cpu: &mut CPU) -> usize {
+    cpu.reg.b = cpu.reg.h;
+    4
+}
+
+pub fn ld_b_l(cpu: &mut CPU) -> usize {
+    cpu.reg.b = cpu.reg.l;
+    4
+}
+
+pub fn ld_b_hl(cpu: &mut CPU) -> usize {
+    cpu.reg.b = cpu.bus.read_byte(cpu.reg.get_hl());
+    8
+}
+
+pub fn ld_b_a(cpu: &mut CPU) -> usize {
+    cpu.reg.b = cpu.reg.a;
+    4
+}
+
+
+pub fn ld_c_b(cpu: &mut CPU) -> usize {
+    cpu.reg.c = cpu.reg.b;
+    4
+}
+
+pub fn ld_c_c(cpu: &mut CPU) -> usize {
+    cpu.reg.c = cpu.reg.c;
+    4
+}
+
+pub fn ld_c_d(cpu: &mut CPU) -> usize {
+    cpu.reg.c = cpu.reg.d;
+    4
+}
+
+pub fn ld_c_e(cpu: &mut CPU) -> usize {
+    cpu.reg.c = cpu.reg.e;
+    4
+}
+
+pub fn ld_c_h(cpu: &mut CPU) -> usize {
+    cpu.reg.c = cpu.reg.h;
+    4
+}
+
+pub fn ld_c_l(cpu: &mut CPU) -> usize {
+    cpu.reg.c = cpu.reg.l;
+    4
+}
+
+pub fn ld_c_hl(cpu: &mut CPU) -> usize {
+    cpu.reg.c = cpu.bus.read_byte(cpu.reg.get_hl());
+    8
+}
+
+pub fn ld_c_a(cpu: &mut CPU) -> usize {
+    cpu.reg.c = cpu.reg.a;
+    4
+}
+
+
+pub fn ld_d_b(cpu: &mut CPU) -> usize {
+    cpu.reg.d = cpu.reg.b;
+    4
+}
+
+pub fn ld_d_c(cpu: &mut CPU) -> usize {
+    cpu.reg.d = cpu.reg.c;
+    4
+}
+
+pub fn ld_d_d(cpu: &mut CPU) -> usize {
+    cpu.reg.d = cpu.reg.d;
+    4
+}
+
+pub fn ld_d_e(cpu: &mut CPU) -> usize {
+    cpu.reg.d = cpu.reg.e;
+    4
+}
+
+pub fn ld_d_h(cpu: &mut CPU) -> usize {
+    cpu.reg.d = cpu.reg.h;
+    4
+}
+
+pub fn ld_d_l(cpu: &mut CPU) -> usize {
+    cpu.reg.d = cpu.reg.l;
+    4
+}
+
+pub fn ld_d_hl(cpu: &mut CPU) -> usize {
+    cpu.reg.d = cpu.bus.read_byte(cpu.reg.get_hl());
+    8
+}
+
+pub fn ld_d_a(cpu: &mut CPU) -> usize {
+    cpu.reg.d = cpu.reg.a;
+    4
+}
+
+
+pub fn ld_e_b(cpu: &mut CPU) -> usize {
+    cpu.reg.e = cpu.reg.b;
+    4
+}
+
+pub fn ld_e_c(cpu: &mut CPU) -> usize {
+    cpu.reg.e = cpu.reg.c;
+    4
+}
+
+pub fn ld_e_d(cpu: &mut CPU) -> usize {
+    cpu.reg.e = cpu.reg.d;
+    4
+}
+
+pub fn ld_e_e(cpu: &mut CPU) -> usize {
+    cpu.reg.e = cpu.reg.e;
+    4
+}
+
+pub fn ld_e_h(cpu: &mut CPU) -> usize {
+    cpu.reg.e = cpu.reg.h;
+    4
+}
+
+pub fn ld_e_l(cpu: &mut CPU) -> usize {
+    cpu.reg.e = cpu.reg.l;
+    4
+}
+
+pub fn ld_e_hl(cpu: &mut CPU) -> usize {
+    cpu.reg.e = cpu.bus.read_byte(cpu.reg.get_hl());
+    8
+}
+
+pub fn ld_e_a(cpu: &mut CPU) -> usize {
+    cpu.reg.e = cpu.reg.a;
+    4
+}
+
+
+pub fn ld_h_b(cpu: &mut CPU) -> usize {
+    cpu.reg.h = cpu.reg.b;
+    4
+}
+
+pub fn ld_h_c(cpu: &mut CPU) -> usize {
+    cpu.reg.h = cpu.reg.c;
+    4
+}
+
+pub fn ld_h_d(cpu: &mut CPU) -> usize {
+    cpu.reg.h = cpu.reg.d;
+    4
+}
+
+pub fn ld_h_e(cpu: &mut CPU) -> usize {
+    cpu.reg.h = cpu.reg.e;
+    4
+}
+
+pub fn ld_h_h(cpu: &mut CPU) -> usize {
+    cpu.reg.h = cpu.reg.h;
+    4
+}
+
+pub fn ld_h_l(cpu: &mut CPU) -> usize {
+    cpu.reg.h = cpu.reg.l;
+    4
+}
+
+pub fn ld_h_hl(cpu: &mut CPU) -> usize {
+    cpu.reg.h = cpu.bus.read_byte(cpu.reg.get_hl());
+    8
+}
+
+pub fn ld_h_a(cpu: &mut CPU) -> usize {
+    cpu.reg.h = cpu.reg.a;
+    4
+}
+
+
+pub fn ld_l_b(cpu: &mut CPU) -> usize {
+    cpu.reg.l = cpu.reg.b;
+    4
+}
+
+pub fn ld_l_c(cpu: &mut CPU) -> usize {
+    cpu.reg.l = cpu.reg.c;
+    4
+}
+
+pub fn ld_l_d(cpu: &mut CPU) -> usize {
+    cpu.reg.l = cpu.reg.d;
+    4
+}
+
+pub fn ld_l_e(cpu: &mut CPU) -> usize {
+    cpu.reg.l = cpu.reg.e;
+    4
+}
+
+pub fn ld_l_h(cpu: &mut CPU) -> usize {
+    cpu.reg.l = cpu.reg.h;
+    4
+}
+
+pub fn ld_l_l(cpu: &mut CPU) -> usize {
+    cpu.reg.l = cpu.reg.l;
+    4
+}
+
+pub fn ld_l_hl(cpu: &mut CPU) -> usize {
+    cpu.reg.l = cpu.bus.read_byte(cpu.reg.get_hl());
+    8
+}
+
+pub fn ld_l_a(cpu: &mut CPU) -> usize {
+    cpu.reg.l = cpu.reg.a;
+    4
+}
+
+
+pub fn ld_hl_b(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_hl();
+    cpu.bus.write_byte(addr, cpu.reg.b);
+    4
+}
+
+pub fn ld_hl_c(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_hl();
+    cpu.bus.write_byte(addr, cpu.reg.c);
+    4
+}
+
+pub fn ld_hl_d(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_hl();
+    cpu.bus.write_byte(addr, cpu.reg.d);
+    4
+}
+
+pub fn ld_hl_e(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_hl();
+    cpu.bus.write_byte(addr, cpu.reg.e);
+    4
+}
+
+pub fn ld_hl_h(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_hl();
+    cpu.bus.write_byte(addr, cpu.reg.h);
+    4
+}
+
+pub fn ld_hl_l(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_hl();
+    cpu.bus.write_byte(addr, cpu.reg.l);
+    4
+}
+
+pub fn ld_hl_a(cpu: &mut CPU) -> usize {
+    let addr = cpu.reg.get_hl();
+    cpu.bus.write_byte(addr, cpu.reg.a);
+    4
+}
+
+
 pub fn ld_a_b(cpu: &mut CPU) -> usize {
     cpu.reg.a = cpu.reg.b;
+    4
+}
+
+pub fn ld_a_c(cpu: &mut CPU) -> usize {
+    cpu.reg.a = cpu.reg.c;
+    4
+}
+
+pub fn ld_a_d(cpu: &mut CPU) -> usize {
+    cpu.reg.a = cpu.reg.d;
+    4
+}
+
+pub fn ld_a_e(cpu: &mut CPU) -> usize {
+    cpu.reg.a = cpu.reg.e;
+    4
+}
+
+pub fn ld_a_h(cpu: &mut CPU) -> usize {
+    cpu.reg.a = cpu.reg.h;
+    4
+}
+
+pub fn ld_a_l(cpu: &mut CPU) -> usize {
+    cpu.reg.a = cpu.reg.l;
+    4
+}
+
+pub fn ld_a_hl(cpu: &mut CPU) -> usize {
+    cpu.reg.a = cpu.bus.read_byte(cpu.reg.get_hl());
+    8
+}
+
+pub fn ld_a_a(cpu: &mut CPU) -> usize {
+    cpu.reg.a = cpu.reg.a;
     4
 }

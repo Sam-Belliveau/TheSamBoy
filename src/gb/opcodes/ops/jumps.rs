@@ -116,42 +116,40 @@ pub fn jp_c_a16(cpu: &mut CPU) -> usize {
 }
 
 // Retarts (push addr to stack and jump to address)
-pub fn rst_00h(cpu: &mut CPU) -> usize {
+pub fn rst_nn(cpu: &mut CPU, addr: u16) -> usize {
     cpu.stack_push(cpu.reg.pc);
-    cpu.reg.pc = 0x0000; 32
+    cpu.reg.pc = addr; 
+    32
+}
+
+pub fn rst_00h(cpu: &mut CPU) -> usize {
+    rst_nn(cpu, 0x0000)
 }
 
 pub fn rst_08h(cpu: &mut CPU) -> usize {
-    cpu.stack_push(cpu.reg.pc);
-    cpu.reg.pc = 0x0008; 32
+    rst_nn(cpu, 0x0008)
 }
 
 pub fn rst_10h(cpu: &mut CPU) -> usize {
-    cpu.stack_push(cpu.reg.pc);
-    cpu.reg.pc = 0x0010; 32
+    rst_nn(cpu, 0x0010)
 }
 
 pub fn rst_18h(cpu: &mut CPU) -> usize {
-    cpu.stack_push(cpu.reg.pc);
-    cpu.reg.pc = 0x0018; 32
+    rst_nn(cpu, 0x0018)
 }
 
 pub fn rst_20h(cpu: &mut CPU) -> usize {
-    cpu.stack_push(cpu.reg.pc);
-    cpu.reg.pc = 0x0020; 32
+    rst_nn(cpu, 0x0020)
 }
 
 pub fn rst_28h(cpu: &mut CPU) -> usize {
-    cpu.stack_push(cpu.reg.pc);
-    cpu.reg.pc = 0x0028; 32
+    rst_nn(cpu, 0x0028)
 }
 
 pub fn rst_30h(cpu: &mut CPU) -> usize {
-    cpu.stack_push(cpu.reg.pc);
-    cpu.reg.pc = 0x0030; 32
+    rst_nn(cpu, 0x0030)
 }
 
 pub fn rst_38h(cpu: &mut CPU) -> usize {
-    cpu.stack_push(cpu.reg.pc);
-    cpu.reg.pc = 0x0038; 32
+    rst_nn(cpu, 0x0038)
 }

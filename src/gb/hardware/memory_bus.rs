@@ -33,7 +33,7 @@ impl MemoryBus {
 
     // initialize everything with default values and rom
     pub fn init(cartridge: &mut File) -> Self {
-        Self {
+        let mut i = Self {
             rom: Cartridge::load(cartridge),
 
             gpu: GPU::init(),
@@ -46,7 +46,41 @@ impl MemoryBus {
 
             ram: WorkRAM::init(),
             hram: [0; HIGH_RAM_SIZE],
-        }
+        };
+        
+        i.write_byte(0xFF05, 0);
+        i.write_byte(0xFF06, 0);
+        i.write_byte(0xFF07, 0);
+        i.write_byte(0xFF10, 0x80);
+        i.write_byte(0xFF11, 0xBF);
+        i.write_byte(0xFF12, 0xF3);
+        i.write_byte(0xFF14, 0xBF);
+        i.write_byte(0xFF16, 0x3F);
+        i.write_byte(0xFF16, 0x3F);
+        i.write_byte(0xFF17, 0);
+        i.write_byte(0xFF19, 0xBF);
+        i.write_byte(0xFF1A, 0x7F);
+        i.write_byte(0xFF1B, 0xFF);
+        i.write_byte(0xFF1C, 0x9F);
+        i.write_byte(0xFF1E, 0xFF);
+        i.write_byte(0xFF20, 0xFF);
+        i.write_byte(0xFF21, 0);
+        i.write_byte(0xFF22, 0);
+        i.write_byte(0xFF23, 0xBF);
+        i.write_byte(0xFF24, 0x77);
+        i.write_byte(0xFF25, 0xF3);
+        i.write_byte(0xFF26, 0xF1);
+        i.write_byte(0xFF40, 0x91);
+        i.write_byte(0xFF42, 0);
+        i.write_byte(0xFF43, 0);
+        i.write_byte(0xFF45, 0);
+        i.write_byte(0xFF47, 0xFC);
+        i.write_byte(0xFF48, 0xFF);
+        i.write_byte(0xFF49, 0xFF);
+        i.write_byte(0xFF4A, 0);
+        i.write_byte(0xFF4B, 0);
+        
+        i
     }
 
 }
@@ -54,12 +88,31 @@ impl MemoryBus {
 impl MemoryBus {
 
     pub fn step(&mut self, cycles: usize) {
-
         self.gpu.step(cycles);
-        self.serial.step(cycles);
-        self.sound.step(cycles);
-        self.timer.step(cycles);
+        self.intf |= self.gpu.get_interrupt();
 
+        self.serial.step(cycles);
+        self.intf |= self.serial.get_interrupt();
+
+        self.sound.step(cycles);
+
+        self.timer.step(cycles);
+        self.intf |= self.timer.get_interrupt();
+    }
+
+    pub fn get_interrupts(&mut self) -> u8 {
+        let interrupts: u8 = self.intf & self.inte;
+
+        for i in 0..8 {
+            let mask: u8 = 1 << i;
+
+            if (interrupts & mask) != 0 {
+                self.intf &= 0xff ^ mask;
+                return mask;
+            }
+        }
+
+        0
     }
 
 }
@@ -101,7 +154,8 @@ impl MemoryBus {
             0xff01..=0xff0e => self.timer.read_io_byte(idx),
             0xff0f => self.intf,
             0xff10..=0xff3f => self.sound.read_io_byte(idx),
-            0xff40..=0xff45 => self.gpu.read_io_byte(idx),
+            0xff46 => 0,
+            0xff40..=0xff4f => self.gpu.read_io_byte(idx),
 
             // High RAM
             0xff80..=0xfffe => self.hram[(idx - 0xff80) as usize],
@@ -110,7 +164,7 @@ impl MemoryBus {
             0xffff => self.inte,
 
             _ => {
-                println!("Unhandled Read from Address [{:#04x?}]", idx);
+                // println!("Unhandled Read from Address [{:#04x?}]", idx);
                 0
             }
         }
@@ -149,7 +203,18 @@ impl MemoryBus {
             0xff01..=0xff0e => self.timer.write_io_byte(idx, val),
             0xff0f => self.intf = val,
             0xff10..=0xff3f => self.sound.write_io_byte(idx, val),
-            0xff40..=0xff45 => self.gpu.write_io_byte(idx, val),
+            0xff46 => {
+                // TODO: Fix This
+                // DMA Transfer, 
+                let base_addr : u16 = (val as u16) << 8;
+                let dest_addr : u16 = 0xfe00;
+
+                for i in 0x00..=0x9f {
+                    let source = self.read_byte(base_addr + i);
+                    self.write_byte(dest_addr + i, source);
+                }
+            },
+            0xff40..=0xff4f => self.gpu.write_io_byte(idx, val),
             
             // High RAM
             0xff80..=0xfffe => self.hram[(idx - 0xff80) as usize] = val,
@@ -168,8 +233,8 @@ impl MemoryBus {
 impl MemoryBus {
 
     pub fn read_word(&self, idx: u16) -> u16 {
-        let h = self.read_byte(idx + 1);
-        let l = self.read_byte(idx + 0);
+        let h = self.read_byte(idx.wrapping_add(1));
+        let l = self.read_byte(idx.wrapping_add(0));
 
         ((h as u16) << 8) | (l as u16)
     }
@@ -178,8 +243,8 @@ impl MemoryBus {
         let h = ((val >> 8) & 0xff) as u8;
         let l = ((val >> 0) & 0xff) as u8;
 
-        self.write_byte(idx + 1, h);
-        self.write_byte(idx + 0, l);
+        self.write_byte(idx.wrapping_add(1), h);
+        self.write_byte(idx.wrapping_add(0), l);
     }
     
 }

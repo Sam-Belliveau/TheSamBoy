@@ -32,6 +32,13 @@ pub mod alu {
         lhs.wrapping_add(rhs_u16)
     }
 
+    pub fn add_u16_to_u16(cpu: &mut CPU, lhs: u16, rhs: u16) -> u16 {
+        cpu.reg.set_n_flag(false);
+        cpu.reg.set_h_flag((lhs & 0x000f) + (rhs & 0x000f) > (0x000f));
+        cpu.reg.set_c_flag((lhs & 0x00ff) + (rhs & 0x00ff) > (0x00ff));
+        lhs.wrapping_add(rhs)
+    }
+
     // inc / dec
     pub fn inc(cpu: &mut CPU, val: u8) -> u8 {
         let ret = val.wrapping_add(1);
@@ -120,7 +127,6 @@ pub mod alu {
     pub fn cp_n(cpu: &mut CPU, n: u8) {
         let ret = cpu.reg.a.wrapping_sub(n);
 
-        println!("CP A < {:#02x?}", n);
         cpu.reg.set_z_flag(ret == 0);
         cpu.reg.set_n_flag(true);
         cpu.reg.set_h_flag(!helper::sub_half_borrow(cpu.reg.a, n));
@@ -697,5 +703,36 @@ pub fn dec_hl(cpu: &mut CPU) -> usize {
 
 pub fn dec_sp(cpu: &mut CPU) -> usize {
     cpu.reg.sp = (cpu.reg.sp.wrapping_sub(1));
+    8
+} 
+
+// 16 bit adds
+pub fn add_hl_bc(cpu: &mut CPU) -> usize {
+    let res = alu::add_u16_to_u16(cpu, cpu.reg.get_hl(), cpu.reg.get_bc());
+    cpu.reg.set_hl(res);
+    8
+} 
+
+pub fn add_hl_de(cpu: &mut CPU) -> usize {
+    let res = alu::add_u16_to_u16(cpu, cpu.reg.get_hl(), cpu.reg.get_de());
+    cpu.reg.set_hl(res);
+    8
+} 
+
+pub fn add_hl_hl(cpu: &mut CPU) -> usize {
+    let res = alu::add_u16_to_u16(cpu, cpu.reg.get_hl(), cpu.reg.get_hl());
+    cpu.reg.set_hl(res);
+    8
+} 
+
+pub fn add_hl_sp(cpu: &mut CPU) -> usize {
+    let res = alu::add_u16_to_u16(cpu, cpu.reg.get_hl(), cpu.reg.sp);
+    cpu.reg.set_hl(res);
+    8
+} 
+
+pub fn add_sp_r8(cpu: &mut CPU) -> usize {
+    let res = alu::add_i8_to_u16(cpu, cpu.reg.sp, cpu.read_prog_byte(1) as i8);
+    cpu.reg.sp = res;
     8
 } 

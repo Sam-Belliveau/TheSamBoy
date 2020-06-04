@@ -7,8 +7,8 @@ pub use crate::gb::cpu::CPU;
 use std::{thread, time};
 use std::fs::File;
 
-const WIDTH: usize = 256 * 4;
-const HEIGHT: usize = 256 * 2;
+const WIDTH: usize = 1024;
+const HEIGHT: usize = 0x80000 / WIDTH;
 
 
 fn main() {
@@ -28,8 +28,12 @@ fn main() {
     });
 
     while window.is_open() {
-        for i in 0x0000..0x0400 {
+        if(window.is_key_down(Key::Space)) {
             cpu.step();
+        } else {
+            for i in 0..6666 {
+                cpu.step();
+            }
         }
 
         for i in 0x0000..=0xffff {
@@ -53,7 +57,6 @@ fn main() {
                 black = 0x000000ff;
                 white = 0xffffff00;
             }
-
 
             for b in 0..8 {
                 let bit_mask = (1 << b) as u8;

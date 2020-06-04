@@ -33,6 +33,48 @@ impl CPU {
     }
 
     pub fn step(&mut self) {
+        let inter = self.bus.get_interrupts();
+        println!("\t\t{}", self.reg);
+
+        if self.interrupts {
+            // VBlank
+            if(inter & (1 << 0)) != 0 {
+                println!("VBlank Interrupt!");
+                self.cycles += ops::jumps::rst_nn(self, 0x40);
+                self.halted = false;
+            }
+
+            // LCD Stat 
+            if(inter & (1 << 1)) != 0 {
+                println!("LCD Stat Interrupt!");
+                self.cycles += ops::jumps::rst_nn(self, 0x48);
+                self.halted = false;
+            }
+
+            // Timer
+            if(inter & (1 << 2)) != 0 {
+                println!("Timer Interrupt!");
+                self.cycles += ops::jumps::rst_nn(self, 0x50);
+                self.halted = false;
+            }
+
+            // Serial
+            if(inter & (1 << 3)) != 0 {
+                println!("Serial Interrupt!");
+                self.cycles += ops::jumps::rst_nn(self, 0x58);
+                self.halted = false;
+            }
+
+            // Keypad
+            if(inter & (1 << 4)) != 0 {
+                println!("Keypad Interrupt!");
+                self.cycles += ops::jumps::rst_nn(self, 0x60);
+                self.halted = false;
+                self.stopped = false;
+            }
+            
+        }
+
         if self.halted {
             println!("HALTED");
         } else if self.stopped {
@@ -59,7 +101,7 @@ impl CPU {
 
         if cycles == ops::errors::UNKNOWN_RETURN_CODE {
             print!("EUI OP Code! {}", op);
-            //panic!("EUI OP Code! {}", op);
+            panic!("EUI OP Code! {}", op);
         } else {
             self.cycles += cycles;
             print!("Ran OP Code! {}", op);
